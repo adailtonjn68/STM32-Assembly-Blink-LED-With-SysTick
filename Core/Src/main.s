@@ -1,7 +1,14 @@
 .include "stm32f10x.inc"
 
+.syntax unified
+.cpu cortex-m3
+.fpu softvfp
+.thumb
+
+
 .equ DELAY,		1000000
 
+.global main
 main:
 	@ Enable clock to GPIOC
 	LDR		r1, =RCC_APB2ENR

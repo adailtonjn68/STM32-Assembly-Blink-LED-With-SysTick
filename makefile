@@ -7,6 +7,7 @@ LINKER:=STM32F103C8TX_FLASH.ld
 WARNINGS:=-Wall
 SYNTAX:=-masm-syntax-unified
 CFLAGS:=-x assembler -c -mcpu=$(CPU) $(SYNTAX) -mfloat-abi=soft -mthumb $(WARNINGS) -g3 -O0
+LINK_FLAGS:=-mcpu=$(CPU) $(SYNTAX) -mfloat-abi=soft -mthumb --specs=nosys.specs -nostdlib -Wl,-Map=./Debug/$(PROJECT_NAME).map -T$(LINKER) -g3
 INC_DIR:=./Core/Inc \
          ./Core/Startup
 INCLUDES:=$(addprefix -I,$(INC_DIR))
@@ -14,7 +15,7 @@ INCLUDES:=$(addprefix -I,$(INC_DIR))
 all: compile
 
 
-debug:
+debug: compile
 	openocd -f /usr/share/openocd/scripts/interface/stlink-v2.cfg -f /usr/share/openocd/scripts/target/stm32f1x.cfg &
 	@#OPENOCD_PID=$!
 	gdb-multiarch ./Debug/$(PROJECT_NAME).elf -ex "target remote localhost:3333"; echo ' '
@@ -23,16 +24,26 @@ debug:
 	@#kill $OPENOCD_PID
 	@#echo $OPENOCD_PID
 
-compile:
-	$(TOOLCHAIN)-gcc $(CFLAGS) $(INCLUDES) ./Core/Src/main.s -o ./Debug/Core/Src/main.o
-	$(TOOLCHAIN)-gcc ./Debug/Core/Src/main.o -Wall --specs=nosys.specs -nostdlib -T$(LINKER) -o ./Debug/$(PROJECT_NAME).elf
-	@echo 'Finished building target: $(PROJECT_NAME).elf'
-	@echo ' '
+
+compile: Debug/$(PROJECT_NAME).bin
+
+Debug/$(PROJECT_NAME).bin: Debug/$(PROJECT_NAME).elf
 	$(TOOLCHAIN)-objcopy -O binary ./Debug/$(PROJECT_NAME).elf ./Debug/$(PROJECT_NAME).bin
 	@echo 'Finished building target: $(PROJECT_NAME).bin'
 	@echo ' '
 	$(TOOLCHAIN)-objdump -D -bbinary -marm ./Debug/$(PROJECT_NAME).bin -Mforce-thumb > ./Debug/$(PROJECT_NAME).list
 	@echo ' '
+
+Debug/$(PROJECT_NAME).elf: Debug/Core/Src/main.o Debug/Core/Startup/startup_stm32f103c8t6.o
+	$(TOOLCHAIN)-gcc ./Debug/Core/Src/main.o ./Debug/Core/Startup/startup_stm32f103c8t6.o -Wall $(LINK_FLAGS) -o ./Debug/$(PROJECT_NAME).elf
+	@echo 'Finished building target: $(PROJECT_NAME).elf'
+	@echo ' '	
+
+Debug/Core/Src/main.o: Core/Src/main.s Core/Inc/stm32f10x.inc
+	$(TOOLCHAIN)-gcc $(CFLAGS) -I./Core/Inc ./Core/Src/main.s -o ./Debug/Core/Src/main.o
+
+Debug/Core/Startup/startup_stm32f103c8t6.o: Core/Startup/startup_stm32f103c8t6.s
+	$(TOOLCHAIN)-gcc $(CFLAGS) ./Core/Startup/startup_stm32f103c8t6.s -o ./Debug/Core/Startup/startup_stm32f103c8t6.o
 
 flash:
 	st-flash write ./Debug/$(PROJECT_NAME).bin 0x8000000
@@ -46,8 +57,6 @@ requisites:
 clean:
 	rm -f Debug/Core/Src/*.o
 	rm -f Debug/Core/Startup/*.o
-	rm -f Debug/*.bin Debug/*.elf Debug/*.o
-	rm -f Debug/$(PROJECT_NAME)
-	rm -f Debug/$(PROJECT_NAME).list
+	rm -f Debug/*.bin Debug/*.elf Debug/*.o Debug/*.map
 
 .PHONY: clean all

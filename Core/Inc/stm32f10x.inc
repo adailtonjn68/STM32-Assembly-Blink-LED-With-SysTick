@@ -1,4 +1,8 @@
-.include "startup_stm32f103c8t6.s"
+.syntax unified
+.cpu cortex-m3
+.fpu softvfp
+.thumb
+
 
 @*********************************************************
 @******************** Define bases ***********************

@@ -6,7 +6,6 @@
                     @ https://developer.arm.com/documentation/dui0473/j/assembler-command-line-options/--fpu-name
 .thumb              @ Use thumb instruction set
 
-
 .macro IRQ handler
     .word \handler
     .weak \handler
@@ -155,3 +154,4 @@ reset_bss_loop:
     BCC     reset_bss
     B       main
 .size Reset_Handler, .-Reset_Handler
+
