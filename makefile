@@ -1,4 +1,4 @@
-PROJECT_NAME:=blink_led
+PROJECT_NAME:=blink_led_with_systick
 TOOLCHAIN:=arm-none-eabi
 
 CPU:=cortex-m3
@@ -34,8 +34,8 @@ Debug/$(PROJECT_NAME).bin: Debug/$(PROJECT_NAME).elf
 	$(TOOLCHAIN)-objdump -D -bbinary -marm ./Debug/$(PROJECT_NAME).bin -Mforce-thumb > ./Debug/$(PROJECT_NAME).list
 	@echo ' '
 
-Debug/$(PROJECT_NAME).elf: Debug/Core/Src/main.o Debug/Core/Startup/startup_stm32f103c8t6.o
-	$(TOOLCHAIN)-gcc ./Debug/Core/Src/main.o ./Debug/Core/Startup/startup_stm32f103c8t6.o -Wall $(LINK_FLAGS) -o ./Debug/$(PROJECT_NAME).elf
+Debug/$(PROJECT_NAME).elf: Debug/Core/Src/main.o Debug/Core/Startup/startup_stm32f103c8t6.o Debug/Core/Src/systick_config.o Debug/Core/Src/stm32f10x.o
+	$(TOOLCHAIN)-gcc ./Debug/Core/Src/main.o ./Debug/Core/Startup/startup_stm32f103c8t6.o ./Debug/Core/Src/systick_config.o Debug/Core/Src/stm32f10x.o -Wall $(LINK_FLAGS) -o ./Debug/$(PROJECT_NAME).elf
 	@echo 'Finished building target: $(PROJECT_NAME).elf'
 	@echo ' '	
 
@@ -44,6 +44,13 @@ Debug/Core/Src/main.o: Core/Src/main.s Core/Inc/stm32f10x.inc
 
 Debug/Core/Startup/startup_stm32f103c8t6.o: Core/Startup/startup_stm32f103c8t6.s
 	$(TOOLCHAIN)-gcc $(CFLAGS) ./Core/Startup/startup_stm32f103c8t6.s -o ./Debug/Core/Startup/startup_stm32f103c8t6.o
+
+Debug/Core/Src/systick_config.o: Core/Src/systick_config.s Core/Inc/stm32f10x.inc
+	$(TOOLCHAIN)-gcc $(CFLAGS) -I./Core/Inc ./Core/Src/systick_config.s -o ./Debug/Core/Src/systick_config.o
+
+Debug/Core/Src/stm32f10x.o: Core/Src/stm32f10x.s Core/Inc/stm32f10x.inc
+	$(TOOLCHAIN)-gcc $(CFLAGS) -I./Core/Inc ./Core/Src/stm32f10x.s -o ./Debug/Core/Src/stm32f10x.o
+
 
 flash:
 	st-flash write ./Debug/$(PROJECT_NAME).bin 0x8000000

@@ -3,15 +3,70 @@
 .fpu softvfp
 .thumb
 
+.include "stm32f10x_constants.inc"
+.include "stm32f10x_gpio.inc"
+.include "stm32f10x_rcc.inc"
+.include "stm32f10x_exti.inc"
+
+.ifndef		STM32F10X_INC_
+.equ		STM32F10X_INC_, 1
+
+.equ __CM3_REV,				(0x0200)		@ Core revision r2p0
+.equ __MPU_PRESENT,			(0x00)			@ Other STM32 devices do not provide MPU
+.equ __NVIC_PRIO_BITS,		(0x04)			@ STM32 uses 4 bits for the priority levels
+.equ __Vendor_SysTickConfig,(0x00)			@ Set to 1 if different SysTick Config is used
+
+
+@*********************************************************
+@************** Interrupt number definition **************
+@*********************************************************
+
+@ Cortex-M3
+.equ NonMaskableInt_IRQn,	(-14)
+.equ HardFault_IRQn,		(-13)
+.equ MemoryManagement_IRQn,	(-12)
+.equ BusFault_IRQn,			(-11)
+.equ UsageFault_IRQn,		(-10)
+.equ SVCall_IRQn,			(-5)
+.equ DebugMonitor_IRQn,		(-4)
+.equ PenSV_IRQn,			(-2)
+.equ SysTick_IRQn,			(-1)
+@ STM32 specific
+.equ WWDG_IRQn,				(0)
+.equ PVD_IRQn,				(1)
+.equ TAMPER_IRQn,			(2)
+.equ RTC_IRQn,				(3)
+.equ FLASH_IRQn,			(4)
+.equ RCC_IRQn,				(5)
+
+@*********************************************************
+@********* Preemption Priority Group *********************
+@*********************************************************
+.equ NVIC_PRIORITYGROUP_0,	(0x7)		@ 0 bits for pre-emption priority; 4 bits for subpriority
+.equ NVIC_PRIORITYGROUP_1,	(0x6)		@ 1 bits for pre-emption priority; 3 bits for subpriority
+.equ NVIC_PRIORITYGROUP_2,	(0x5)		@ 2 bits for pre-emption priority; 2 bits for subpriority
+.equ NVIC_PRIORITYGROUP_3,	(0x4)		@ 3 bits for pre-emption priority; 1 bits for subpriority
+.equ NVIC_PRIORITYGROUP_4,	(0x3)		@ 4 bits for pre-emption priority; 0 bits for subpriority
 
 @*********************************************************
 @******************** Define bases ***********************
 @*********************************************************
 
+@ Core hardware
+.equ SCS_BASE,				(0xE000E000)	@ Sytem Control Space Base Address
+.equ ITM_BASE,				(0xE0000000)	@ ITM base address
+.equ DWT_BASE,				(0xE0001000)
+.equ TPI_BASE,				(0xE0040000)
+.equ CoreDebug_BASE,		(0xE000EDF0)
+.equ SysTick_BASE,			(SCS_BASE + 0x0010)
+.equ NVIC_BASE,				(SCS_BASE + 0x0100)
+.equ SCB_BASE,				(SCS_BASE + 0x0D00)	@ System Control Block base address
+
+
 .equ PERIPH_BASE,           (0x40000000)
 
 @ Bus: AHB
-@.equ FLASH_BASE,            (0x40022000)
+.equ FLASH_BASE,            (0x40022000)
 .equ RCC_BASE,              (0x40021000)
 .equ DMA2_BASE,             (0x40020400)
 .equ DMA1_BASE,             (0x40020000)
@@ -69,6 +124,36 @@
 @*********************************************************
 @***************** Register addresses ********************
 @*********************************************************
+
+.equ SCB_CPUID,				(SCB_BASE + 0x00)	@ (R/ ) CPUID base register
+.equ SCB_ICSR,				(SCB_BASE + 0x04)	@ (R/W) Interrupt Control and State register
+.equ SCB_VTOR,				(SCB_BASE + 0x08)	@ (R/W) Vector Table Offset register
+.equ SCB_AIRCR,				(SCB_BASE + 0x0C)	@ (R/W) Application Interrrupt and Reset register
+.equ SCB_SCR,				(SCB_BASE + 0x10)	@ (R/W) System Control register
+.equ SCB_CCR,				(SCB_BASE + 0x14)	@ (R/W) Configuration Control register
+.equ SCB_SHP_BASE,			(SCB_BASE + 0x18)	@ (R/W) System Handlers Priority registers
+.equ SCB_SHCSR,				(SCB_BASE + 0x24)	@ (R/W) System Handler Control and State register
+.equ SCB_CFSR,				(SCB_BASE + 0x28)	@ (R/W) Configurable Fault Status register
+.equ SCB_HFSR,				(SCB_BASE + 0x2C)	@ (R/W) HardFault Status register
+.equ SCB_DFSR,				(SCB_BASE + 0x30)	@ (R/W) Debug Fault Status register
+.equ SCB_MMFAR,				(SCB_BASE + 0x34)	@ (R/W) MemManage Fault address register
+.equ SCB_BFAR,				(SCB_BASE + 0x38)	@ (R/W) BusFault address register
+.equ SCB_AFSR,				(SCB_BASE + 0x3C)	@ (R/W) Auxiliary Fault Status register
+.equ SCB_PFR_BASE,			(SCB_BASE + 0x40)	@ (R/ ) Processor Feature register
+.equ SCB_DFR,				(SCB_BASE + 0x48)	@ (R/ ) Debug Feature register
+.equ SCB_ADR,				(SCB_BASE + 0x4C)	@ (R/ ) Auxiliary Feature register
+.equ SCB_MMFR_BASE,			(SCB_BASE + 0x50)	@ (R/ ) Memory Model Feature register
+.equ SCB_ISAR_BASE,			(SCB_BASE + 0x60)	@ (R/ ) Instruction Set Attributes register
+.equ SCB_CPACR,				(SCB_BASE + 0x88)	@ (R/ ) Coprocessor Access Control Register
+
+.equ SCB_SHP_SysTick_IRQn,	(SCB_SHP_BASE + ((SysTick_IRQn) & 0xF) - 4)
+
+.equ SysTick_CTRL,			(SysTick_BASE + 0x00)
+.equ SysTick_LOAD,			(SysTick_BASE + 0x04)
+.equ SysTick_VAL,			(SysTick_BASE + 0x08)
+.equ SysTick_CALIB,			(Systick_BASE + 0x0C)
+
+.equ FLASH_ACR,				(FLASH_BASE + 0x00)
 
 .equ CRC_DR,                (CRC_BASE + 0x00)
 .equ CRC_IDR,               (CRC_BASE + 0x04)
@@ -280,271 +365,24 @@
 .equ TIM8_DCR,              (TIM8_BASE + 0x48)
 .equ TIM8_DMAR,             (TIM8_BASE + 0x4C)
 
-
 @*********************************************************
 @***************** Defining constants ********************
 @*********************************************************
 
-@ RCC constants
-.equ RCC_APB2ENR_IOPGEN,    (BIT8)
-.equ RCC_APB2ENR_IOPFEN,    (BIT7)
-.equ RCC_APB2ENR_IOPEEN,    (BIT6)
-.equ RCC_APB2ENR_IOPDEN,    (BIT5)
-.equ RCC_APB2ENR_IOPCEN,    (BIT4)
-.equ RCC_APB2ENR_IOPBEN,    (BIT3)
-.equ RCC_APB2ENR_IOPAEN,    (BIT2)
+@ SysTick constants
+.equ SysTick_CTRL_CLKSOURCE,(1 << 2)
+.equ SysTick_CTRL_TICKINT,	(1 << 1)
+.equ SysTick_CTRL_ENABLE,	(1 << 0)
 
-@ GPIO constants
-.equ GPIO_CRL_CNF7,         (BIT31 | BIT30)
-.equ GPIO_CRL_CNF6,         (BIT27 | BIT26)
-.equ GPIO_CRL_CNF5,         (BIT23 | BIT22)
-.equ GPIO_CRL_CNF4,         (BIT19 | BIT18)
-.equ GPIO_CRL_CNF3,         (BIT15 | BIT14)
-.equ GPIO_CRL_CNF2,         (BIT11 | BIT10)
-.equ GPIO_CRL_CNF1,         (BIT7 | BIT6)
-.equ GPIO_CRL_CNF0,         (BIT3 | BIT2)
+@ FLASH constants
+.equ FLASH_ACR_PRFTBS,		(BIT5)
+.equ FLASH_ACR_PRFTBE,		(BIT4)
+.equ FLASH_ACR_HLFCYA,		(BIT3)
+.equ FLASH_ACR_LATENCY,		(BIT2 | BIT1 | BIT0)
 
-.equ GPIO_CRL_MODE7,        (BIT29 | BIT28)
-.equ GPIO_CRL_MODE6,        (BIT25 | BIT24)
-.equ GPIO_CRL_MODE5,        (BIT21 | BIT20)
-.equ GPIO_CRL_MODE4,        (BIT17 | BIT16)
-.equ GPIO_CRL_MODE3,        (BIT13 | BIT12)
-.equ GPIO_CRL_MODE2,        (BIT9 | BIT8)
-.equ GPIO_CRL_MODE1,        (BIT5 | BIT4)
-.equ GPIO_CRL_MODE0,        (BIT1 | BIT0)
-
-.equ GPIO_CRL_CNF7_0,       (BIT30)
-.equ GPIO_CRL_CNF7_1,       (BIT31)
-.equ GPIO_CRL_CNF6_0,       (BIT26)
-.equ GPIO_CRL_CNF6_1,       (BIT27)
-.equ GPIO_CRL_CNF5_0,       (BIT22)
-.equ GPIO_CRL_CNF5_1,       (BIT23)
-.equ GPIO_CRL_CNF4_0,       (BIT18)
-.equ GPIO_CRL_CNF4_1,       (BIT19)
-.equ GPIO_CRL_CNF3_0,       (BIT14)
-.equ GPIO_CRL_CNF3_1,       (BIT15)
-.equ GPIO_CRL_CNF2_0,       (BIT10)
-.equ GPIO_CRL_CNF2_1,       (BIT11)
-.equ GPIO_CRL_CNF1_0,       (BIT6)
-.equ GPIO_CRL_CNF1_1,       (BIT7)
-.equ GPIO_CRL_CNF0_0,       (BIT2)
-.equ GPIO_CRL_CNF0_1,       (BIT3)
-
-.equ GPIO_CRL_MODE7_0,      (BIT28)
-.equ GPIO_CRL_MODE7_1,      (BIT29)
-.equ GPIO_CRL_MODE6_0,      (BIT24)
-.equ GPIO_CRL_MODE6_1,      (BIT25)
-.equ GPIO_CRL_MODE5_0,      (BIT20)
-.equ GPIO_CRL_MODE5_1,      (BIT21)
-.equ GPIO_CRL_MODE4_0,      (BIT16)
-.equ GPIO_CRL_MODE4_1,      (BIT17)
-.equ GPIO_CRL_MODE3_0,      (BIT12)
-.equ GPIO_CRL_MODE3_1,      (BIT13)
-.equ GPIO_CRL_MODE2_0,      (BIT8)
-.equ GPIO_CRL_MODE2_1,      (BIT9)
-.equ GPIO_CRL_MODE1_0,      (BIT4)
-.equ GPIO_CRL_MODE1_1,      (BIT5)
-.equ GPIO_CRL_MODE0_0,      (BIT0)
-.equ GPIO_CRL_MODE0_1,      (BIT1)
-
-.equ GPIO_CRH_CNF15,        (BIT31 | BIT30)
-.equ GPIO_CRH_CNF14,        (BIT27 | BIT26)
-.equ GPIO_CRH_CNF13,        (BIT23 | BIT22)
-.equ GPIO_CRH_CNF12,        (BIT19 | BIT18)
-.equ GPIO_CRH_CNF11,        (BIT15 | BIT14)
-.equ GPIO_CRH_CNF10,        (BIT11 | BIT10)
-.equ GPIO_CRH_CNF9,         (BIT7 | BIT6)
-.equ GPIO_CRH_CNF8,         (BIT3 | BIT2)
-
-.equ GPIO_CRH_MODE15,       (BIT29 | BIT28)
-.equ GPIO_CRH_MODE14,       (BIT25 | BIT24)
-.equ GPIO_CRH_MODE13,       (BIT21 | BIT20)
-.equ GPIO_CRH_MODE12,       (BIT17 | BIT16)
-.equ GPIO_CRH_MODE11,       (BIT13 | BIT12)
-.equ GPIO_CRH_MODE10,       (BIT9 | BIT8)
-.equ GPIO_CRH_MODE9,        (BIT5 | BIT4)
-.equ GPIO_CRH_MODE8,        (BIT1 | BIT0)
-
-.equ GPIO_CRH_CNF15_0,      (BIT30)
-.equ GPIO_CRH_CNF15_1,      (BIT31)
-.equ GPIO_CRH_CNF14_0,      (BIT26)
-.equ GPIO_CRH_CNF14_1,      (BIT27)
-.equ GPIO_CRH_CNF13_0,      (BIT22)
-.equ GPIO_CRH_CNF13_1,      (BIT23)
-.equ GPIO_CRH_CNF12_0,      (BIT18)
-.equ GPIO_CRH_CNF12_1,      (BIT19)
-.equ GPIO_CRH_CNF11_0,      (BIT14)
-.equ GPIO_CRH_CNF11_1,      (BIT15)
-.equ GPIO_CRH_CNF10_0,      (BIT10)
-.equ GPIO_CRH_CNF10_1,      (BIT11)
-.equ GPIO_CRH_CNF9_0,       (BIT6)
-.equ GPIO_CRH_CNF9_1,       (BIT7)
-.equ GPIO_CRH_CNF8_0,       (BIT2)
-.equ GPIO_CRH_CNF8_1,       (BIT3)
-
-.equ GPIO_CRH_MODE15_0,     (BIT28)
-.equ GPIO_CRH_MODE15_1,     (BIT29)
-.equ GPIO_CRH_MODE14_0,     (BIT24)
-.equ GPIO_CRH_MODE14_1,     (BIT25)
-.equ GPIO_CRH_MODE13_0,     (BIT20)
-.equ GPIO_CRH_MODE13_1,     (BIT21)
-.equ GPIO_CRH_MODE12_0,     (BIT16)
-.equ GPIO_CRH_MODE12_1,     (BIT17)
-.equ GPIO_CRH_MODE11_0,     (BIT12)
-.equ GPIO_CRH_MODE11_1,     (BIT13)
-.equ GPIO_CRH_MODE10_0,     (BIT8)
-.equ GPIO_CRH_MODE10_1,     (BIT9)
-.equ GPIO_CRH_MODE9_0,      (BIT4)
-.equ GPIO_CRH_MODE9_1,      (BIT5)
-.equ GPIO_CRH_MODE8_0,      (BIT0)
-.equ GPIO_CRH_MODE8_1,      (BIT1)
-
-.equ GPIO_BSRR_BR15,        (BIT15 << 16)
-.equ GPIO_BSRR_BR14,        (BIT14 << 16)
-.equ GPIO_BSRR_BR13,        (BIT13 << 16)
-.equ GPIO_BSRR_BR12,        (BIT12 << 16)
-.equ GPIO_BSRR_BR11,        (BIT11 << 16)
-.equ GPIO_BSRR_BR10,        (BIT10 << 16)
-.equ GPIO_BSRR_BR9,         (BIT9 << 16)
-.equ GPIO_BSRR_BR8,         (BIT8 << 16)
-.equ GPIO_BSRR_BR7,         (BIT7 << 16)
-.equ GPIO_BSRR_BR6,         (BIT6 << 16)
-.equ GPIO_BSRR_BR5,         (BIT5 << 16)
-.equ GPIO_BSRR_BR4,         (BIT4 << 16)
-.equ GPIO_BSRR_BR3,         (BIT3 << 16)
-.equ GPIO_BSRR_BR2,         (BIT2 << 16)
-.equ GPIO_BSRR_BR1,         (BIT1 << 16)
-.equ GPIO_BSRR_BR0,         (BIT0 << 16)
-
-.equ GPIO_BSRR_BS15,        (BIT15)
-.equ GPIO_BSRR_BS14,        (BIT14)
-.equ GPIO_BSRR_BS13,        (BIT13)
-.equ GPIO_BSRR_BS12,        (BIT12)
-.equ GPIO_BSRR_BS11,        (BIT11)
-.equ GPIO_BSRR_BS10,        (BIT10)
-.equ GPIO_BSRR_BS9,         (BIT9)
-.equ GPIO_BSRR_BS8,         (BIT8)
-.equ GPIO_BSRR_BS7,         (BIT7)
-.equ GPIO_BSRR_BS6,         (BIT6)
-.equ GPIO_BSRR_BS5,         (BIT5)
-.equ GPIO_BSRR_BS4,         (BIT4)
-.equ GPIO_BSRR_BS3,         (BIT3)
-.equ GPIO_BSRR_BS2,         (BIT2)
-.equ GPIO_BSRR_BS1,         (BIT1)
-.equ GPIO_BSRR_BS0,         (BIT0)
-
-.equ GPIO_Pin_0,            (BIT0)
-.equ GPIO_Pin_1,            (BIT1)
-.equ GPIO_Pin_2,            (BIT2)
-.equ GPIO_Pin_3,            (BIT3)
-.equ GPIO_Pin_4,            (BIT4)
-.equ GPIO_Pin_5,            (BIT5)
-.equ GPIO_Pin_6,            (BIT6)
-.equ GPIO_Pin_7,            (BIT7)
-.equ GPIO_Pin_8,            (BIT8)
-.equ GPIO_Pin_9,            (BIT9)
-.equ GPIO_Pin_10,           (BIT10)
-.equ GPIO_Pin_11,           (BIT11)
-.equ GPIO_Pin_12,           (BIT12)
-.equ GPIO_Pin_13,           (BIT13)
-.equ GPIO_Pin_14,           (BIT14)
-.equ GPIO_Pin_15,           (BIT15)
+.equ FLASH_ACR_LATENCY_0,	(BIT0)
+.equ FLASH_ACR_LATENCY_1,	(BIT1)
+.equ FLASH_ACR_LATENCY_2,	(BIT2)
 
 
-.equ EXTI_IMR_IMR0,         (BIT0)
-.equ EXTI_IMR_IMR1,         (BIT1)
-.equ EXTI_IMR_IMR2,         (BIT2)
-.equ EXTI_IMR_IMR3,         (BIT3)
-.equ EXTI_IMR_IMR4,         (BIT4)
-.equ EXTI_IMR_IMR5,         (BIT5)
-.equ EXTI_IMR_IMR6,         (BIT6)
-.equ EXTI_IMR_IMR7,         (BIT7)
-.equ EXTI_IMR_IMR8,         (BIT8)
-.equ EXTI_IMR_IMR9,         (BIT9)
-.equ EXTI_IMR_IMR10,        (BIT10)
-.equ EXTI_IMR_IMR11,        (BIT11)
-.equ EXTI_IMR_IMR12,        (BIT11)
-.equ EXTI_IMR_IMR13,        (BIT13)
-.equ EXTI_IMR_IMR14,        (BIT14)
-.equ EXTI_IMR_IMR15,        (BIT15)
-.equ EXTI_IMR_IMR16,        (BIT16)
-.equ EXTI_IMR_IMR17,        (BIT17)
-.equ EXTI_IMR_IMR18,        (BIT18)
-.equ EXTI_IMR_IMR19,        (BIT19)
-
-.equ EXTI_RTSR_TR0,         (BIT0)
-.equ EXTI_RTSR_TR1,         (BIT1)
-.equ EXTI_RTSR_TR2,         (BIT2)
-.equ EXTI_RTSR_TR3,         (BIT3)
-.equ EXTI_RTSR_TR4,         (BIT4)
-.equ EXTI_RTSR_TR5,         (BIT5)
-.equ EXTI_RTSR_TR6,         (BIT6)
-.equ EXTI_RTSR_TR7,         (BIT7)
-.equ EXTI_RTSR_TR8,         (BIT8)
-.equ EXTI_RTSR_TR9,         (BIT9)
-.equ EXTI_RTSR_TR10,        (BIT10)
-.equ EXTI_RTSR_TR11,        (BIT11)
-.equ EXTI_RTSR_TR12,        (BIT12)
-.equ EXTI_RTSR_TR13,        (BIT13)
-.equ EXTI_RTSR_TR14,        (BIT14)
-.equ EXTI_RTSR_TR15,        (BIT15)
-.equ EXTI_RTSR_TR16,        (BIT16)
-.equ EXTI_RTSR_TR17,        (BIT17)
-.equ EXTI_RTSR_TR18,        (BIT18)
-.equ EXTI_RTSR_TR19,        (BIT19)
-
-
-.equ EXTI_FTSR_TR0,         (BIT0)
-.equ EXTI_FTSR_TR1,         (BIT1)
-.equ EXTI_FTSR_TR2,         (BIT2)
-.equ EXTI_FTSR_TR3,         (BIT3)
-.equ EXTI_FTSR_TR4,         (BIT4)
-.equ EXTI_FTSR_TR5,         (BIT5)
-.equ EXTI_FTSR_TR6,         (BIT6)
-.equ EXTI_FTSR_TR7,         (BIT7)
-.equ EXTI_FTSR_TR8,         (BIT8)
-.equ EXTI_FTSR_TR9,         (BIT9)
-.equ EXTI_FTSR_TR10,        (BIT10)
-.equ EXTI_FTSR_TR11,        (BIT11)
-.equ EXTI_FTSR_TR12,        (BIT12)
-.equ EXTI_FTSR_TR13,        (BIT13)
-.equ EXTI_FTSR_TR14,        (BIT14)
-.equ EXTI_FTSR_TR15,        (BIT15)
-.equ EXTI_FTSR_TR16,        (BIT16)
-.equ EXTI_FTSR_TR17,        (BIT17)
-.equ EXTI_FTSR_TR18,        (BIT18)
-.equ EXTI_FTSR_TR19,        (BIT19)
-
-@ General BIT constants
-.equ BIT0,                  (0x00000001)
-.equ BIT1,                  (0x00000002)
-.equ BIT2,                  (0x00000004)
-.equ BIT3,                  (0x00000008)
-.equ BIT4,                  (0x00000010)
-.equ BIT5,                  (0x00000020)
-.equ BIT6,                  (0x00000040)
-.equ BIT7,                  (0x00000080)
-.equ BIT8,                  (0x00000100)
-.equ BIT9,                  (0x00000200)
-.equ BIT10,                 (0x00000400)
-.equ BIT11,                 (0x00000800)
-.equ BIT12,                 (0x00001000)
-.equ BIT13,                 (0x00002000)
-.equ BIT14,                 (0x00004000)
-.equ BIT15,                 (0x00008000)
-.equ BIT16,                 (0x00010000)
-.equ BIT17,                 (0x00020000)
-.equ BIT18,                 (0x00040000)
-.equ BIT19,                 (0x00080000)
-.equ BIT20,                 (0x00100000)
-.equ BIT21,                 (0x00200000)
-.equ BIT22,                 (0x00400000)
-.equ BIT23,                 (0x00800000)
-.equ BIT24,                 (0x01000000)
-.equ BIT25,                 (0x02000000)
-.equ BIT26,                 (0x04000000)
-.equ BIT27,                 (0x08000000)
-.equ BIT28,                 (0x10000000)
-.equ BIT29,                 (0x20000000)
-.equ BIT30,                 (0x40000000)
-.equ BIT31,                 (0x80000000)
+.endif

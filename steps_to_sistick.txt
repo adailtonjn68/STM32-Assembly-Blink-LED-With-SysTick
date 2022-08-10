@@ -1,0 +1,23 @@
+#define  TICK_INT_PRIORITY            15U
+#define SysTick_IRQn                = -1 /*!< 15 Cortex-M3 System Tick Interrupt
+
+HAL_Init()
+	HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
+
+	/* Use systick as time base source and configure 1ms tick (default clock after Reset is HSI) */
+	HAL_InitTick(TICK_INT_PRIORITY);
+		HAL_SYSTICK_Config(SystemCoreClock / (1000U / uwTickFreq))
+			SysTick_Config(TicksNumb)
+				SysTick->LOAD  = (uint32_t)(ticks - 1UL);
+				NVIC_SetPriority (SysTick_IRQn, (1UL << __NVIC_PRIO_BITS) - 1UL);
+					SCB->SHP[(((uint32_t)IRQn) & 0xFUL)-4UL] = (uint8_t)((priority << (8U - __NVIC_PRIO_BITS)) & (uint32_t)0xFFUL);
+				SysTick->VAL   = 0UL;
+				  SysTick->CTRL  = SysTick_CTRL_CLKSOURCE_Msk |
+									SysTick_CTRL_TICKINT_Msk   |
+									SysTick_CTRL_ENABLE_Msk;                         /* Enable SysTick IRQ and SysTick Timer */
+
+		HAL_NVIC_SetPriority(SysTick_IRQn, TickPriority, 0U);
+
+
+	/* Init the low level hardware */
+	HAL_MspInit();

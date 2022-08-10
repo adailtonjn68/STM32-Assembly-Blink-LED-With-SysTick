@@ -6,10 +6,12 @@
 .thumb
 
 
-.equ DELAY,		1000000
-
+.equ DELAY1,		1000
 .global main
 main:
+	LDR		r0, =#8000
+	BL		SysTick_Init
+
 	@ Enable clock to GPIOC
 	LDR		r1, =RCC_APB2ENR
 	LDR		r0, [r1]
@@ -29,10 +31,8 @@ loop:
 	ORR		r0, r0, GPIO_BSRR_BS13
 	STR		r0, [r1]
 
-	LDR		r0, =DELAY
-delay1:
-	SUBS	r0, #1
-	BNE		delay1
+	LDR		r0, =DELAY1
+	BL		delay
 
 	@ Turn off GPIOC13
 	LDR		r1, =GPIOC_BSRR
@@ -40,9 +40,7 @@ delay1:
 	ORR		r0, r0, GPIO_BSRR_BR13
 	STR		r0, [r1]
 
-	LDR		r0, =DELAY
-delay2:
-	SUBS	r0, #1
-	BNE		delay2
+	LDR		r0, =DELAY1
+	BL		delay
 
 	B		loop
