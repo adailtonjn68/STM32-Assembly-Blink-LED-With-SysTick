@@ -27,9 +27,9 @@ SysTick_Init:
 	SUB		r0, #1
 	STR		r0, [r4]
 	@ Set interrupt priority of SysTick to least urgency (largest priority value)
-	LDR		r4, =SCB_SHP_SysTick_IRQn
-	LDR		r0, =((15 << (8 - __NVIC_PRIO_BITS)) & 0xFF)
-	STR		r0, [r4]
+@	LDR		r4, =SCB_SHP_SysTick_IRQn
+@	LDR		r0, =((15 << (8 - __NVIC_PRIO_BITS)) & 0xFF)
+@	STR		r0, [r4]
 	@ Reset SysTick counter
 	LDR		r4, =SysTick_VAL
 	LDR		r5, =#0

@@ -4,12 +4,11 @@
 .thumb
 
 .include "stm32f10x_constants.inc"
+.include "stm32f10x_systick.inc"
 .include "stm32f10x_gpio.inc"
 .include "stm32f10x_rcc.inc"
 .include "stm32f10x_exti.inc"
 
-.ifndef		STM32F10X_INC_
-.equ		STM32F10X_INC_, 1
 
 .equ __CM3_REV,				(0x0200)		@ Core revision r2p0
 .equ __MPU_PRESENT,			(0x00)			@ Other STM32 devices do not provide MPU
@@ -146,7 +145,7 @@
 .equ SCB_ISAR_BASE,			(SCB_BASE + 0x60)	@ (R/ ) Instruction Set Attributes register
 .equ SCB_CPACR,				(SCB_BASE + 0x88)	@ (R/ ) Coprocessor Access Control Register
 
-.equ SCB_SHP_SysTick_IRQn,	(SCB_SHP_BASE + ((SysTick_IRQn) & 0xF) - 4)
+.equ SCB_SHP_SysTick_IRQn,	(SCB_SHP_BASE + 11) @(SCB_SHP_BASE + ((SysTick_IRQn) & 0xF) - 4)
 
 .equ SysTick_CTRL,			(SysTick_BASE + 0x00)
 .equ SysTick_LOAD,			(SysTick_BASE + 0x04)
@@ -369,10 +368,6 @@
 @***************** Defining constants ********************
 @*********************************************************
 
-@ SysTick constants
-.equ SysTick_CTRL_CLKSOURCE,(1 << 2)
-.equ SysTick_CTRL_TICKINT,	(1 << 1)
-.equ SysTick_CTRL_ENABLE,	(1 << 0)
 
 @ FLASH constants
 .equ FLASH_ACR_PRFTBS,		(BIT5)
@@ -383,6 +378,3 @@
 .equ FLASH_ACR_LATENCY_0,	(BIT0)
 .equ FLASH_ACR_LATENCY_1,	(BIT1)
 .equ FLASH_ACR_LATENCY_2,	(BIT2)
-
-
-.endif

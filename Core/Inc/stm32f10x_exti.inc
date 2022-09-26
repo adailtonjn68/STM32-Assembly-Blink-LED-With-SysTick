@@ -5,8 +5,6 @@
 
 .include "stm32f10x_constants.inc"
 
-.ifndef		STM32F10X_EXTI_INC_
-.equ		STM32F10X_EXTI_INC_, 1
 
 @ EXTI constants
 
@@ -74,4 +72,3 @@
 .equ EXTI_FTSR_TR18,        (BIT18)
 .equ EXTI_FTSR_TR19,        (BIT19)
 
-.endif

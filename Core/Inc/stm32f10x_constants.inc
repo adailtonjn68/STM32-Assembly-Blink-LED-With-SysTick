@@ -3,8 +3,6 @@
 .fpu softvfp
 .thumb
 
-.ifndef		STM32F10X_CONSTANTS_INC_
-.equ		STM32F10X_CONSTANTS_INC_, 1
 
  @ General BIT constants
 .equ BIT0,					(0x00000001)
@@ -39,5 +37,3 @@
 .equ BIT29,					(0x20000000)
 .equ BIT30,					(0x40000000)
 .equ BIT31,					(0x80000000)
-
-.endif

@@ -5,8 +5,6 @@
 
 .include "stm32f10x_constants.inc"
 
-.ifndef		STM32F10X_GPIO_INC_
-.equ		STM32F10X_GPIO_INC_, 1
 
 @ GPIO constants
 .equ GPIO_CRL_CNF7,         (BIT31 | BIT30)
@@ -164,6 +162,3 @@
 .equ GPIO_Pin_14,           (BIT14)
 .equ GPIO_Pin_15,           (BIT15)
 
-
-
-.endif

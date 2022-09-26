@@ -1,12 +1,14 @@
-.include "stm32f10x.inc"
-
 .syntax unified
 .cpu cortex-m3
 .fpu softvfp
 .thumb
 
+.include "stm32f10x.inc"
+
 
 .equ DELAY1,		1000
+
+.section .text
 .global main
 main:
 	LDR		r0, =#8000

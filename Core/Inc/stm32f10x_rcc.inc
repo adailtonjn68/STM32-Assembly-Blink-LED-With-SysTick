@@ -5,9 +5,6 @@
 
 .include "stm32f10x_constants.inc"
 
-.ifndef		STM32F10X_RCC_INC_
-.equ		STM32F10X_RCC_INC_, 1
-
 @ RCC constants
 
 .equ RCC_APB2ENR_IOPGEN,    (BIT8)
@@ -17,6 +14,3 @@
 .equ RCC_APB2ENR_IOPCEN,    (BIT4)
 .equ RCC_APB2ENR_IOPBEN,    (BIT3)
 .equ RCC_APB2ENR_IOPAEN,    (BIT2)
-
-
-.endif
